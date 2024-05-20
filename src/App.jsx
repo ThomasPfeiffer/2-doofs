@@ -5,7 +5,7 @@ import AddIcon from '@mui/icons-material/Add';
 
 function App() {
   const [players, setPlayers] = useLocalState("players", [])
-  const [scores, setScores] = useLocalState("scores", [{}])
+  const [scores, setScores] = useLocalState("scores", [])
   const onSubmit = (e) => {
     const input = document.getElementById("NeuerSpieler");
     const v = input.value
@@ -31,7 +31,7 @@ function App() {
             return <React.Fragment key={index}>
               {players.map((player) => {
                 return <Box key={player}>
-                  <TextField value={score[player] ?? ""} type="number" variant="filled" sx={{ width: 60 }}
+                  <TextField value={score[player] ?? "0"} type="number" variant="filled" sx={{ width: 60 }}
                     onChange={event => {
                       const newValue = parseInt(event.target.valueAsNumber)
                       if (!isNaN(newValue)) {
@@ -52,7 +52,7 @@ function App() {
               setScores([...scores, s])} players={players} />
           <CompleteResetButton onReset={() => {
             setPlayers([])
-            setScores([{}])
+            setScores([])
           }} />
           </CardActions>
       </Card>
@@ -85,7 +85,9 @@ function GigaWizardDialog({ players, addScore }) {
 function GigaWizard({ players, scores, setScores }) {
 
   return <Stack>
-    <TextField type="number" id="ZauberWert" />
+    <TextField type="number" id="ZauberWert" onFocus={() => {
+      document.getElementById("ZauberWert").value = ""
+    }} />
     {players.map(player => {
       return <Button onClick={
         () => {
