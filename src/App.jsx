@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import './App.css';
-import { Button, Card, Container, IconButton, Stack, TextField, Box, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, CardContent, CardActions } from '@mui/material';
+import { Button, Card, Container, FormControlLabel, Switch, IconButton, Stack, TextField, Box, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, CardContent, CardActions } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 function App() {
@@ -13,6 +13,7 @@ function App() {
     input.value = ""
     e.preventDefault?.()
   }
+  const [excite, setExcite] = useLocalState("excite", false)
 
   return (
     <Container>
@@ -26,8 +27,10 @@ function App() {
           display: "grid",
           gridTemplateColumns: `repeat(${players.length + 1}, 1fr)`
         }}>
-          {players.map(p => <Box key={p}>{p} ({scores.reduce((acc, score) => acc + (score[p] ?? 0), 0)})</Box>)}
-          <span></span>
+          {players.map(p => <Box key={p}>{p} {excite ? "" : `(${scores.reduce((acc, score) => acc + (score[p] ?? 0), 0)})`}</Box>)}
+          <span>
+
+          </span>
           {scores.map((score, index) => {
             return <React.Fragment key={index}>
               {players.map((player) => {
@@ -64,6 +67,9 @@ function App() {
           }} />
           </CardActions>
       </Card>
+      <FormControlLabel control={<Switch 
+      checked={excite}
+      onChange={(e) => setExcite(e.target.checked)} />} label="Spannung maximieren" />
     </Container>
   );
 }
