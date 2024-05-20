@@ -65,6 +65,8 @@ function App() {
           <CompleteResetButton onReset={() => {
             setPlayers([])
             setScores([])
+          }} onResetScores={() => {
+            setScores([])
           }} />
           </CardActions>
       </Card>
@@ -90,8 +92,8 @@ function GigaWizardDialog({ players, addScore }) {
         <GigaWizard setScores={setScore} scores={score} players={players} />
       </DialogContent>
       <DialogActions>
-        <Button onClick={() => { setOpen(false); addScore(score) }}>Fertig</Button>
-        <Button onClick={() => setOpen(false)}>Abbruch</Button>
+        <Button color="info" onClick={() => setOpen(false)}>Abbruch</Button>
+        <Button color="primary" onClick={() => { setOpen(false); addScore(score) }}>Fertig</Button>
       </DialogActions>
     </Dialog>}
   </>
@@ -157,7 +159,7 @@ function DeleteScoreButton({ onReset }) {
   );
 }
 
-function CompleteResetButton({ onReset }) {
+function CompleteResetButton({ onReset, onResetScores }) {
   const [open, setOpen] = React.useState(false);
 
   const handleClickOpen = () => {
@@ -184,16 +186,22 @@ function CompleteResetButton({ onReset }) {
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            Hierdurch werden alle Spieler und Werte gelöscht.
+            Was möchtest du zurücksetzen?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Nein</Button>
+          <Button color="info" onClick={handleClose}>Abbruch</Button>
           <Button onClick={() => {
             onReset()
             handleClose()
-          }} autoFocus>
-            Ja
+          }} color="error">
+            Alles
+          </Button>
+          <Button color="primary" onClick={() => {
+            onResetScores()
+            handleClose()
+          }}>
+            Nur Ergebnisse
           </Button>
         </DialogActions>
       </Dialog>
