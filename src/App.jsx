@@ -9,7 +9,7 @@ function App() {
   const onSubmit = (e) => {
     const input = document.getElementById("NeuerSpieler");
     const v = input.value
-    if (v) setPlayers([...players, v])
+    if (v && !players.includes(v)) setPlayers([...players, v])
     input.value = ""
     e.preventDefault?.()
   }
@@ -25,7 +25,8 @@ function App() {
         <CardContent sx={{
           p: 3, gap: 2,
           display: "grid",
-          gridTemplateColumns: `repeat(${players.length + 1}, 1fr)`
+          gridTemplateColumns: `repeat(${players.length + 1}, 1fr)`,
+          overflow: "auto"
         }}>
           {players.map(p => <Box key={p}>{p} {excite ? "" : `(${scores.reduce((acc, score) => acc + (score[p] ?? 0), 0)})`}</Box>)}
           <span>
