@@ -1,4 +1,4 @@
-FROM node:18.17.1-alpine3.18 as build-deps
+FROM node:22-alpine3.19 as build-deps
 WORKDIR /app
 COPY ./ ./
 RUN npm install
