@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useReducer, useState } from "react";
 import "./App.css";
 import {
   Button,
@@ -17,15 +17,146 @@ import {
   DialogActions,
   CardContent,
   CardActions,
+  Fade,
+  Slide,
+  Grow,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
+import logo from "./logo.png";
+import {
+  Add,
+  Delete,
+  RemoveCircle,
+  StackedLineChart,
+  Stop,
+} from "@mui/icons-material";
+import FlipMove from "react-flip-move";
+
+type Player = string;
 
 export function App() {
-  const [players, setPlayers] = useLocalState("players", []);
+  const [players, setPlayers] = useLocalState<Player[]>("players", []);
+  const hasGame = players.length > 0;
+
+  return hasGame ? (
+    <Game players={players} setPlayers={setPlayers} />
+  ) : (
+    <Intro setPlayers={setPlayers} />
+  );
+}
+
+function Intro(props: { setPlayers: (players: Player[]) => void }) {
+  const timeout = 2000;
+  let counter = 1;
+  const getTimeout = () => timeout * counter++;
+  const [newPlayers, setNewPlayers] = useState<Player[]>([""]);
+
+  const deletePlayer = (index: number) =>
+    setNewPlayers(newPlayers.filter((_, i) => i !== index));
+  const updatePlayer = (updatedPlayer: Player, indexToUpdate: number) =>
+    setNewPlayers(
+      newPlayers.map((player, index) =>
+        index === indexToUpdate ? updatedPlayer : player
+      )
+    );
+
+  return (
+    <Container sx={{ px: 3 }}>
+      <Stack alignItems="center">
+        <Fade in={true} timeout={2000}>
+          <Box
+            component="img"
+            sx={{ width: "80vw", height: "auto", display: "block" }}
+            src={logo}
+            alt="error"
+          />
+        </Fade>
+        <Fade in={true} timeout={4000}>
+          <Stack sx={{ width: 1 }}>
+            <FlipMove>
+              {newPlayers.map((player, index) => {
+                return (
+                  <Box sx={{ my: 2 }}>
+                    <PlayerInput
+                      player={player}
+                      showLabel
+                      allowDelete={newPlayers.length !== 1}
+                      deletePlayer={deletePlayer}
+                      updatePlayer={updatePlayer}
+                      index={index}
+                    />
+                  </Box>
+                );
+              })}
+              <Button
+                startIcon={<Add />}
+                onClick={() => setNewPlayers([...newPlayers, ""])}
+                variant="outlined"
+                fullWidth
+                sx={{ mt: 2 }}
+              >
+                Spieler hinzufügen
+              </Button>
+            </FlipMove>
+          </Stack>
+        </Fade>
+      </Stack>
+    </Container>
+  );
+}
+
+function PlayerInput(props: {
+  player: Player;
+  index: number;
+  updatePlayer: (player: Player, index: number) => void;
+  deletePlayer: (index: number) => void;
+  showLabel: boolean;
+  allowDelete: boolean;
+}) {
+  const { deletePlayer, player, updatePlayer, showLabel, allowDelete, index } =
+    props;
+
+  return (
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: "1fr auto",
+        alignItems: "center",
+        rowGap: 1,
+      }}
+    >
+      <TextField
+        variant="standard"
+        placeholder="Spielernamen eingeben..."
+        label={showLabel ? `Name` : " "}
+        value={player}
+        onChange={(e) => updatePlayer(e.target.value, index)}
+        fullWidth
+      />
+      <Box sx={{ alignSelf: "end", width: "24px" }}>
+        {allowDelete && (
+          <IconButton
+            onClick={() => deletePlayer(index)}
+            sx={{ p: 0 }}
+            size="large"
+          >
+            <RemoveCircle sx={{ color: (t) => t.palette.error.light }} />
+          </IconButton>
+        )}
+      </Box>
+    </Box>
+  );
+}
+
+function Game(props: {
+  players: Player[];
+  setPlayers: (players: Player[]) => void;
+}) {
+  const { players, setPlayers } = props;
   const [scores, setScores] = useLocalState("scores", []);
   const onSubmit = (e) => {
-    const input = document.getElementById("NeuerSpieler");
+    const input = document.getElementById("NeuerSpieler") as HTMLInputElement;
     const v = input.value;
     if (v && !players.includes(v)) setPlayers([...players, v]);
     input.value = "";
@@ -82,9 +213,7 @@ export function App() {
                           variant="filled"
                           sx={{ width: 60 }}
                           onChange={(event) => {
-                            const newValue = parseInt(
-                              event.target.valueAsNumber
-                            );
+                            const newValue = parseInt(event.target.value);
                             if (!isNaN(newValue)) {
                               score[player] = newValue;
                               setScores([...scores]);
@@ -180,15 +309,19 @@ function GigaWizard({ players, scores, setScores }) {
       <TextField
         type="number"
         id="ZauberWert"
+        placeholder="score"
         onFocus={() => {
-          document.getElementById("ZauberWert").value = "";
+          (document.getElementById("ZauberWert") as HTMLInputElement).value =
+            "";
         }}
       />
       {players.map((player) => {
         return (
           <Button
             onClick={() => {
-              const value = document.getElementById("ZauberWert").valueAsNumber;
+              const value = (
+                document.getElementById("ZauberWert") as HTMLInputElement
+              ).valueAsNumber;
               setScores({ ...scores, [player]: value || 0 });
             }}
           >
@@ -299,16 +432,16 @@ function CompleteResetButton({ onReset, onResetScores }) {
   );
 }
 
-function useLocalState(key, initial) {
+function useLocalState<T>(key: string, initial: T): [T, (t: T) => void] {
   const [state, setState] = useState(() => {
     const saves = localStorage.getItem(key);
     if (saves) return JSON.parse(saves);
     return initial;
   });
-  const setActualState = useCallback((value) => {
+  const setActualState = useCallback((value: unknown) => {
     localStorage.setItem(key, JSON.stringify(value));
     setState(value);
-  });
+  }, []);
 
   return [state, setActualState];
 }
