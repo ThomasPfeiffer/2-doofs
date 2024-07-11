@@ -27,6 +27,8 @@ import logo from "./logo.png";
 import {
   Add,
   Delete,
+  PlayArrow,
+  PlaylistRemoveSharp,
   RemoveCircle,
   StackedLineChart,
   Stop,
@@ -77,10 +79,10 @@ function Intro(props: { setPlayers: (players: Player[]) => void }) {
             <FlipMove>
               {newPlayers.map((player, index) => {
                 return (
-                  <Box sx={{ my: 2 }}>
+                  <Box sx={{ my: 4 }}>
                     <PlayerInput
                       player={player}
-                      showLabel
+                      showLabel={true}
                       allowDelete={newPlayers.length !== 1}
                       deletePlayer={deletePlayer}
                       updatePlayer={updatePlayer}
@@ -94,9 +96,18 @@ function Intro(props: { setPlayers: (players: Player[]) => void }) {
                 onClick={() => setNewPlayers([...newPlayers, ""])}
                 variant="outlined"
                 fullWidth
-                sx={{ mt: 2 }}
               >
                 Spieler hinzufügen
+              </Button>
+              <Button
+                endIcon={<PlayArrow />}
+                disabled={newPlayers.filter((it) => it).length <= 1}
+                onClick={() => props.setPlayers(newPlayers.filter((it) => it))}
+                variant="contained"
+                fullWidth
+                sx={{ mt: 2 }}
+              >
+                Los Gehts!
               </Button>
             </FlipMove>
           </Stack>
@@ -129,8 +140,13 @@ function PlayerInput(props: {
       <TextField
         variant="standard"
         placeholder="Spielernamen eingeben..."
-        label={showLabel ? `Name` : " "}
+        InputLabelProps={{ shrink: true }}
         value={player}
+        sx={{
+          "label[data-shrink=false] + & ::-webkit-input-placeholder": {
+            opacity: "0.5 !important",
+          },
+        }}
         onChange={(e) => updatePlayer(e.target.value, index)}
         fullWidth
       />
