@@ -1,176 +1,36 @@
-import React, { useCallback, useReducer, useState } from "react";
-import "./App.css";
+import { createLazyFileRoute } from "@tanstack/react-router";
+import React, { useState } from "react";
+import { usePlayers } from "../PlayerContext";
+import { useGame } from "../GameContext";
 import {
-  Button,
-  Card,
   Container,
-  FormControlLabel,
-  Switch,
-  IconButton,
   Stack,
   TextField,
-  Box,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
+  IconButton,
+  Card,
   CardContent,
+  Box,
   CardActions,
-  Fade,
-  Slide,
-  Grow,
+  FormControlLabel,
+  Switch,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogActions,
+  DialogTitle,
+  DialogContentText,
 } from "@mui/material";
+import { useLocalState } from "../useLocalState";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
-import logo from "./logo.png";
-import {
-  Add,
-  Delete,
-  PlayArrow,
-  PlaylistRemoveSharp,
-  RemoveCircle,
-  StackedLineChart,
-  Stop,
-} from "@mui/icons-material";
-import FlipMove from "react-flip-move";
 
-type Player = string;
+export const Route = createLazyFileRoute("/game")({
+  component: Game,
+});
 
-export function App() {
-  const [players, setPlayers] = useLocalState<Player[]>("players", []);
-  const hasGame = players.length > 0;
-
-  return hasGame ? (
-    <Game players={players} setPlayers={setPlayers} />
-  ) : (
-    <Intro setPlayers={setPlayers} />
-  );
-}
-
-function Intro(props: { setPlayers: (players: Player[]) => void }) {
-  const timeout = 2000;
-  let counter = 1;
-  const getTimeout = () => timeout * counter++;
-  const [newPlayers, setNewPlayers] = useState<Player[]>([""]);
-
-  const deletePlayer = (index: number) =>
-    setNewPlayers(newPlayers.filter((_, i) => i !== index));
-  const updatePlayer = (updatedPlayer: Player, indexToUpdate: number) =>
-    setNewPlayers(
-      newPlayers.map((player, index) =>
-        index === indexToUpdate ? updatedPlayer : player
-      )
-    );
-
-  return (
-    <Container sx={{ px: 3 }}>
-      <Stack alignItems="center">
-        <Fade in={true} timeout={2000}>
-          <Box
-            component="img"
-            sx={{ width: "80vw", height: "auto", display: "block" }}
-            src={logo}
-            alt="error"
-          />
-        </Fade>
-        <Fade in={true} timeout={4000}>
-          <Stack sx={{ width: 1 }}>
-            <FlipMove>
-              {newPlayers.map((player, index) => {
-                return (
-                  <Box sx={{ my: 4 }}>
-                    <PlayerInput
-                      player={player}
-                      showLabel={true}
-                      allowDelete={newPlayers.length !== 1}
-                      deletePlayer={deletePlayer}
-                      updatePlayer={updatePlayer}
-                      index={index}
-                    />
-                  </Box>
-                );
-              })}
-              <Button
-                startIcon={<Add />}
-                onClick={() => setNewPlayers([...newPlayers, ""])}
-                variant="outlined"
-                fullWidth
-              >
-                Spieler hinzufügen
-              </Button>
-              <Button
-                endIcon={<PlayArrow />}
-                disabled={newPlayers.filter((it) => it).length <= 1}
-                onClick={() => props.setPlayers(newPlayers.filter((it) => it))}
-                variant="contained"
-                fullWidth
-                sx={{ mt: 2 }}
-              >
-                Los Gehts!
-              </Button>
-            </FlipMove>
-          </Stack>
-        </Fade>
-      </Stack>
-    </Container>
-  );
-}
-
-function PlayerInput(props: {
-  player: Player;
-  index: number;
-  updatePlayer: (player: Player, index: number) => void;
-  deletePlayer: (index: number) => void;
-  showLabel: boolean;
-  allowDelete: boolean;
-}) {
-  const { deletePlayer, player, updatePlayer, showLabel, allowDelete, index } =
-    props;
-
-  return (
-    <Box
-      sx={{
-        display: "grid",
-        gridTemplateColumns: "1fr auto",
-        alignItems: "center",
-        rowGap: 1,
-      }}
-    >
-      <TextField
-        variant="standard"
-        placeholder="Spielernamen eingeben..."
-        InputLabelProps={{ shrink: true }}
-        value={player}
-        sx={{
-          "label[data-shrink=false] + & ::-webkit-input-placeholder": {
-            opacity: "0.5 !important",
-          },
-        }}
-        onChange={(e) => updatePlayer(e.target.value, index)}
-        fullWidth
-      />
-      <Box sx={{ alignSelf: "end", width: "24px" }}>
-        {allowDelete && (
-          <IconButton
-            onClick={() => deletePlayer(index)}
-            sx={{ p: 0 }}
-            size="large"
-          >
-            <RemoveCircle sx={{ color: (t) => t.palette.error.light }} />
-          </IconButton>
-        )}
-      </Box>
-    </Box>
-  );
-}
-
-function Game(props: {
-  players: Player[];
-  setPlayers: (players: Player[]) => void;
-}) {
-  const { players, setPlayers } = props;
-  const [scores, setScores] = useLocalState("scores", []);
+function Game() {
+  const { players, setPlayers } = usePlayers();
+  const { addRound, rounds: scores, setRounds: setScores } = useGame();
   const onSubmit = (e) => {
     const input = document.getElementById("NeuerSpieler") as HTMLInputElement;
     const v = input.value;
@@ -446,18 +306,4 @@ function CompleteResetButton({ onReset, onResetScores }) {
       </Dialog>
     </React.Fragment>
   );
-}
-
-function useLocalState<T>(key: string, initial: T): [T, (t: T) => void] {
-  const [state, setState] = useState(() => {
-    const saves = localStorage.getItem(key);
-    if (saves) return JSON.parse(saves);
-    return initial;
-  });
-  const setActualState = useCallback((value: unknown) => {
-    localStorage.setItem(key, JSON.stringify(value));
-    setState(value);
-  }, []);
-
-  return [state, setActualState];
 }
