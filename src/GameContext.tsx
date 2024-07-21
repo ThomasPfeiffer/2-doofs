@@ -3,61 +3,120 @@ import React, {
   PropsWithChildren,
   useCallback,
   useContext,
+  useEffect,
+  useMemo,
 } from "react";
 import { Player } from "./Player";
 import { useLocalState } from "./useLocalState";
 import { noop } from "./noop";
+import { createId } from "./createId";
 
-const Context = createContext<Game>({
-  hasGame: false,
-  rounds: [],
+const Context = createContext<GameContext>({
+  game: { rounds: [] },
   addRound: noop,
   removeRound: noop,
-  setRounds: noop,
+  resetGame: noop,
+  setGame: noop,
 });
 
 export function GameContextProvider(props: PropsWithChildren) {
-  const [rounds, setRounds] = useLocalState<Array<Round>>("scores", []);
+  const [maybeOldGame, setGame] = useLocalState<OldGame | Game>("scores", {
+    rounds: [],
+  });
+  const { game } = useOldGameMigration(maybeOldGame, setGame);
+
   const addRound = useCallback(
     (round: Round) => {
-      setRounds([...rounds, round]);
+      setGame({ rounds: [...game.rounds, round] });
     },
-    [rounds]
+    [game.rounds]
   );
   const removeRound = useCallback(
     (index: number) => {
-      setRounds(rounds.filter((_, i) => i !== index));
+      setGame({ rounds: game.rounds.filter((_, i) => i !== index) });
     },
-    [rounds]
+    [game.rounds]
   );
+  const resetGame = useCallback(() => {
+    setGame({ rounds: [] });
+  }, []);
 
   return (
     <Context.Provider
       value={{
-        rounds,
-        setRounds,
+        game,
         addRound,
         removeRound,
-        hasGame: rounds.length > 0,
+        resetGame,
+        setGame,
       }}
-    ></Context.Provider>
+    >
+      {props.children}
+    </Context.Provider>
   );
 }
 
-export type Game = {
-  rounds: Array<Round>;
-  setRounds: (rounds: Array<Round>) => void;
+export type GameContext = {
+  game: Game;
   addRound: (round: Round) => void;
   removeRound: (index: number) => void;
-  hasGame: boolean;
+  resetGame: () => void;
+  setGame: (game: Game) => void;
+};
+
+type Game = {
+  rounds: Array<Round>;
 };
 
 export interface Round {
-  scores: Score;
+  scores: Array<Score>;
 }
-
-export type Score = Record<Player, number>;
+export type Score = { playerId: string; value: number };
 
 export function useGame() {
   return useContext(Context);
+}
+
+function useOldGameMigration(
+  game: OldGame | Game,
+  updateGame: (game: Game) => void
+): { game: Game } {
+  const migratedGame = useMemo(() => {
+    if (isOldGame(game)) {
+      const playerMap = new Map<string, string>();
+      const idFor = (name: string) => {
+        if (!playerMap.has(name)) {
+          playerMap.set(name, createId());
+        }
+        return playerMap.get(name);
+      };
+      const migratedGame: Game = {
+        rounds: game.map((oldRound) => {
+          return {
+            scores: Object.entries(oldRound).map(([playerName, value]) => ({
+              playerId: idFor(playerName),
+              value: value,
+            })),
+          };
+        }),
+      };
+      return migratedGame;
+    }
+    return game;
+  }, [game]);
+  useEffect(() => {
+    if (isOldGame(game)) {
+      updateGame(migratedGame);
+    }
+  }, []);
+
+  return { game: migratedGame };
+}
+
+type OldGame = Array<OldScore>;
+type OldPlayer = string;
+type OldScore = Record<OldPlayer, number>;
+
+function isOldGame(game: OldGame | Game): game is OldGame {
+  return Array.isArray(game);
 }

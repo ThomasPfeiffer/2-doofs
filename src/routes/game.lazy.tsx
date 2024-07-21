@@ -19,193 +19,91 @@ import {
   DialogActions,
   DialogTitle,
   DialogContentText,
+  Typography,
+  Divider,
 } from "@mui/material";
 import { useLocalState } from "../useLocalState";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { createId } from "../createId";
+import { Send, SettingsRounded } from "@mui/icons-material";
+import { CompleteResetButton } from "../components/CompleteResetButton";
+import { ResetScoresButton } from "../components/ResetScoresButton";
 
 export const Route = createLazyFileRoute("/game")({
   component: Game,
 });
 
 function Game() {
-  const { players, setPlayers } = usePlayers();
-  const { addRound, rounds: scores, setRounds: setScores } = useGame();
-  const onSubmit = (e) => {
-    const input = document.getElementById("NeuerSpieler") as HTMLInputElement;
-    const v = input.value;
-    if (v && !players.includes(v)) setPlayers([...players, v]);
-    input.value = "";
-    e.preventDefault?.();
-  };
-  const [excite, setExcite] = useLocalState("excite", false);
+  const { players, setPlayers, addPlayer } = usePlayers();
+  const {
+    addRound,
+    game: { rounds },
+  } = useGame();
 
   return (
     <Container>
+      <Settings />
+      <span></span>
+    </Container>
+  );
+}
+
+function Settings() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <IconButton onClick={() => setOpen(true)}>
+        <SettingsRounded />
+      </IconButton>
+      <Dialog open={open} onClose={() => setOpen(false)}>
+        <DialogTitle sx={{ pb: 0 }}>Menü</DialogTitle>
+        <DialogContent sx={{ px: 3 }}>
+          <AddPlayer />
+          <DialogActions sx={{ mt: 2, gap: 2 }}>
+            <CompleteResetButton />
+            <ResetScoresButton />
+            <Button variant="contained" onClick={() => setOpen(false)}>
+              Ok
+            </Button>
+          </DialogActions>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+function AddPlayer() {
+  const { addPlayer } = usePlayers();
+  const onSubmit = (e) => {
+    const input = document.getElementById("NeuerSpieler") as HTMLInputElement;
+    const newPlayerName = input.value;
+    if (newPlayerName) {
+      addPlayer({ id: createId(), name: newPlayerName });
+    }
+    input.value = "";
+    e.preventDefault?.();
+  };
+
+  return (
+    <Box>
+      <Typography fontWeight="bold" paragraph></Typography>
       <Stack
         component="form"
         direction="row"
         alignItems={"center"}
         onSubmit={onSubmit}
-        sx={{ m: 3 }}
       >
-        <TextField label="Neuer Spieler" id="NeuerSpieler"></TextField>
+        <TextField
+          label="Spieler hinzufügen"
+          id="NeuerSpieler"
+          variant="standard"
+        ></TextField>
         <IconButton onClick={onSubmit}>
-          <AddIcon />
+          <AddIcon color="primary" />
         </IconButton>
       </Stack>
-      <Card>
-        <CardContent
-          sx={{
-            p: 3,
-            gap: 2,
-            display: "grid",
-            gridTemplateColumns: `repeat(${players.length + 1}, 1fr)`,
-            overflow: "auto",
-          }}
-        >
-          {players.map((p) => (
-            <Box key={p}>
-              {p}{" "}
-              {excite
-                ? ""
-                : `(${scores.reduce(
-                    (acc, score) => acc + (score[p] ?? 0),
-                    0
-                  )})`}
-            </Box>
-          ))}
-          <span></span>
-          {scores.map((score, index) => {
-            return (
-              <React.Fragment key={index}>
-                {players.map((player) => {
-                  return (
-                    <React.Fragment key={player}>
-                      <Box>
-                        <TextField
-                          value={score[player] ?? "0"}
-                          type="number"
-                          variant="filled"
-                          sx={{ width: 60 }}
-                          onChange={(event) => {
-                            const newValue = parseInt(event.target.value);
-                            if (!isNaN(newValue)) {
-                              score[player] = newValue;
-                              setScores([...scores]);
-                            } else {
-                              score[player] = undefined;
-                              setScores([...scores]);
-                            }
-                          }}
-                        />
-                      </Box>
-                    </React.Fragment>
-                  );
-                })}
-                <Box>
-                  <DeleteScoreButton
-                    onReset={() => {
-                      setScores(scores.filter((_, index2) => index !== index2));
-                    }}
-                  />
-                </Box>
-              </React.Fragment>
-            );
-          })}
-        </CardContent>
-        <CardActions>
-          <GigaWizardDialog
-            addScore={(s) => setScores([...scores, s])}
-            players={players}
-          />
-          <CompleteResetButton
-            onReset={() => {
-              setPlayers([]);
-              setScores([]);
-            }}
-            onResetScores={() => {
-              setScores([]);
-            }}
-          />
-        </CardActions>
-      </Card>
-      <FormControlLabel
-        control={
-          <Switch
-            checked={excite}
-            onChange={(e) => setExcite(e.target.checked)}
-          />
-        }
-        label="Spannung maximieren"
-      />
-    </Container>
-  );
-}
-
-function GigaWizardDialog({ players, addScore }) {
-  const [open, setOpen] = React.useState(false);
-  const [score, setScore] = useState({});
-
-  const handleOpen = () => {
-    setScore({});
-    setOpen(true);
-  };
-  return (
-    <>
-      <Button onClick={handleOpen}>Nächste Runde</Button>
-      {
-        <Dialog open={open}>
-          <DialogContent>
-            <GigaWizard setScores={setScore} scores={score} players={players} />
-          </DialogContent>
-          <DialogActions>
-            <Button color="info" onClick={() => setOpen(false)}>
-              Abbruch
-            </Button>
-            <Button
-              color="primary"
-              onClick={() => {
-                setOpen(false);
-                addScore(score);
-              }}
-            >
-              Fertig
-            </Button>
-          </DialogActions>
-        </Dialog>
-      }
-    </>
-  );
-}
-
-function GigaWizard({ players, scores, setScores }) {
-  return (
-    <Stack>
-      <TextField
-        type="number"
-        id="ZauberWert"
-        placeholder="score"
-        onFocus={() => {
-          (document.getElementById("ZauberWert") as HTMLInputElement).value =
-            "";
-        }}
-      />
-      {players.map((player) => {
-        return (
-          <Button
-            onClick={() => {
-              const value = (
-                document.getElementById("ZauberWert") as HTMLInputElement
-              ).valueAsNumber;
-              setScores({ ...scores, [player]: value || 0 });
-            }}
-          >
-            {player} {player in scores ? `(${scores[player]})` : ""}
-          </Button>
-        );
-      })}
-    </Stack>
+    </Box>
   );
 }
 
@@ -247,60 +145,6 @@ function DeleteScoreButton({ onReset }) {
             autoFocus
           >
             Ja
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </React.Fragment>
-  );
-}
-
-function CompleteResetButton({ onReset, onResetScores }) {
-  const [open, setOpen] = React.useState(false);
-
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
-
-  return (
-    <React.Fragment>
-      <Button onClick={handleClickOpen}>Reset</Button>
-      <Dialog
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">{"Ganz sicher?"}</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Was möchtest du zurücksetzen?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button color="info" onClick={handleClose}>
-            Abbruch
-          </Button>
-          <Button
-            onClick={() => {
-              onReset();
-              handleClose();
-            }}
-            color="error"
-          >
-            Alles
-          </Button>
-          <Button
-            color="primary"
-            onClick={() => {
-              onResetScores();
-              handleClose();
-            }}
-          >
-            Nur Ergebnisse
           </Button>
         </DialogActions>
       </Dialog>

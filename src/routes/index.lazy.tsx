@@ -20,21 +20,20 @@ export const Route = createLazyFileRoute("/")({
 });
 
 function Index() {
-  const { setPlayers } = usePlayers();
-  const [newPlayers, setNewPlayers] = useState<Player[]>([""]);
+  const { setPlayers, players } = usePlayers();
   const navigate = useNavigate();
 
   const deletePlayer = (index: number) =>
-    setNewPlayers(newPlayers.filter((_, i) => i !== index));
+    setPlayers(players.filter((_, i) => i !== index));
   const updatePlayer = (updatedPlayer: Player, indexToUpdate: number) =>
-    setNewPlayers(
-      newPlayers.map((player, index) =>
+    setPlayers(
+      players.map((player, index) =>
         index === indexToUpdate ? updatedPlayer : player
       )
     );
 
   const submit = () => {
-    setPlayers(newPlayers.filter((it) => it));
+    setPlayers(players.filter((it) => it));
     navigate({ to: "/game" });
   };
   return (
@@ -51,13 +50,13 @@ function Index() {
         <Fade in={true} timeout={4000}>
           <Stack sx={{ width: 1 }}>
             <FlipMove>
-              {newPlayers.map((player, index) => {
+              {players.map((player, index) => {
                 return (
                   <Box sx={{ my: 4 }}>
                     <PlayerInput
                       player={player}
                       showLabel={true}
-                      allowDelete={newPlayers.length !== 1}
+                      allowDelete={players.length !== 1}
                       deletePlayer={deletePlayer}
                       updatePlayer={updatePlayer}
                       index={index}
@@ -67,7 +66,7 @@ function Index() {
               })}
               <Button
                 startIcon={<Add />}
-                onClick={() => setNewPlayers([...newPlayers, ""])}
+                onClick={() => setPlayers([...players, ""])}
                 variant="outlined"
                 fullWidth
               >
@@ -75,7 +74,7 @@ function Index() {
               </Button>
               <Button
                 endIcon={<PlayArrow />}
-                disabled={newPlayers.filter((it) => it).length <= 1}
+                disabled={players.filter((it) => it).length <= 1}
                 onClick={submit}
                 variant="contained"
                 fullWidth

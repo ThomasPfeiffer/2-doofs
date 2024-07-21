@@ -13,12 +13,16 @@ export interface PlayerContext {
   setPlayers: (players: Array<Player>) => void;
   hasPlayers: boolean;
   addPlayer: (player: Player) => void;
+  updatePlayerName: (id: string, newName: string) => void;
+  resetPlayers: () => void;
 }
 
 const Context = createContext<PlayerContext>({
   players: [],
   setPlayers: noop,
   addPlayer: noop,
+  updatePlayerName: noop,
+  resetPlayers: noop,
   hasPlayers: false,
 });
 
@@ -31,6 +35,20 @@ export function PlayerContextProvider(props: PropsWithChildren) {
     [players]
   );
   const hasPlayers = players.length > 0;
+  const updatePlayerName = useCallback((id: string, newName: string) => {
+    setPlayers(
+      players.map((player) => {
+        if (player.id !== id) {
+          return player;
+        }
+        return { id: player.id, name: newName };
+      })
+    );
+  }, []);
+
+  const resetPlayers = useCallback(() => {
+    setPlayers([]);
+  }, []);
 
   return (
     <Context.Provider
@@ -39,6 +57,8 @@ export function PlayerContextProvider(props: PropsWithChildren) {
         setPlayers,
         hasPlayers,
         addPlayer,
+        updatePlayerName,
+        resetPlayers,
       }}
     >
       {props.children}
