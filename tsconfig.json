@@ -1,12 +1,13 @@
 {
-    "compilerOptions": {
-      "outDir": "./built",
-      "allowJs": true,
-      "target": "es5",
-      "esModuleInterop": true,
-      "jsx": "react",
-      "lib": ["ESNext", "DOM"],
-      "noEmit": true
-    },
-    "include": ["./src/**/*"]
-  }
+  "compilerOptions": {
+    "outDir": "./built",
+    "allowJs": true,
+    "target": "es5",
+    "esModuleInterop": true,
+    "jsx": "react",
+    "lib": ["ESNext", "DOM"],
+    "noEmit": true,
+    "strict": true
+  },
+  "include": ["./src/**/*"]
+}
