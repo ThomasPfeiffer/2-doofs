@@ -1,18 +1,28 @@
 import { Add, PlayArrow, RemoveCircle } from "@mui/icons-material";
-import { Box, Button, Fade, IconButton, Stack, TextField } from "@mui/material";
+import {
+  Box,
+  Button,
+  Fade,
+  IconButton,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
 import React from "react";
 import FlipMove from "react-flip-move";
-import { Link } from "react-router";
-import "./App.css";
+import { useNavigate } from "react-router";
+import { useConfirmation } from "./ConfirmationDialog";
 import logo from "./logo.png";
 import { PageLayout } from "./PageLayout";
-import { Player, useGame } from "./useGame";
+import { useGame } from "./useGame";
+import { Player, usePlayers } from "./usePlayers";
 
 export function Intro() {
-  const {
-    game: { players },
-    addPlayer,
-  } = useGame();
+  const { players, addPlayer } = usePlayers();
+  const { game, resetGame, addRound } = useGame();
+  const hasGame = game.rounds.length > 0;
+  const { confirm } = useConfirmation();
+  const navigate = useNavigate();
 
   return (
     <PageLayout>
@@ -45,29 +55,60 @@ export function Intro() {
                   </Box>
                 );
               })}
-              <Button
-                startIcon={<Add />}
-                onClick={addPlayer}
-                variant="outlined"
-                fullWidth
-              >
-                Spieler hinzufügen
-              </Button>
-              <Button
-                endIcon={<PlayArrow />}
-                disabled={players.some((it) => !it.name) || players.length <= 1}
-                component={Link}
-                to="/1"
-                variant="contained"
-                fullWidth
-                sx={{ mt: 2 }}
-              >
-                Los Gehts!
-              </Button>
+              <Stack gap={2}>
+                <Button
+                  startIcon={<Add />}
+                  onClick={addPlayer}
+                  variant="outlined"
+                  fullWidth
+                >
+                  Spieler hinzufügen
+                </Button>
+                {hasGame && (
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    onClick={() => {
+                      navigate(`/${game.rounds.length}`);
+                    }}
+                    endIcon={<PlayArrow />}
+                  >
+                    Fortsetzen
+                  </Button>
+                )}
+                <Button
+                  endIcon={<PlayArrow />}
+                  disabled={
+                    players.some((it) => !it.name) || players.length <= 1
+                  }
+                  onClick={() => {
+                    if (hasGame) {
+                      confirm({
+                        title: "Sicher?",
+                        text: "Du hast noch ein laufendes Spiel, möchtest du wirklich ein neues starten?",
+                        onConfirm: () => {
+                          resetGame();
+                          navigate(`/1`);
+                        },
+                      });
+                    } else {
+                      addRound();
+                      navigate(`/1`);
+                    }
+                  }}
+                  variant="contained"
+                  fullWidth
+                >
+                  Neues Spiel
+                </Button>
+              </Stack>
             </FlipMove>
           </Stack>
         </Fade>
       </Stack>
+      <Typography sx={{ whiteSpace: "pre-wrap" }}>
+        {JSON.stringify(game, undefined, 2)}
+      </Typography>
     </PageLayout>
   );
 }
@@ -79,7 +120,7 @@ function PlayerInput(props: {
   allowDelete: boolean;
 }) {
   const { player, allowDelete } = props;
-  const { updatePlayer, removePlayer } = useGame();
+  const { updatePlayer, removePlayer } = usePlayers();
 
   return (
     <Box

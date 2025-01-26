@@ -8,28 +8,36 @@ import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import {
   alpha,
   Box,
+  Button,
   Card,
   CardContent,
   Stack,
   Typography,
 } from "@mui/material";
 import React, { useState } from "react";
-import { Navigate, useParams } from "react-router";
+import { Navigate, useNavigate, useParams } from "react-router";
 import { PageLayout } from "../PageLayout";
-import { Game, Player, Round, Score, useGame } from "../useGame";
+import { Round, Score, useGame } from "../useGame";
+import { Player, usePlayers } from "../usePlayers";
 import { Header } from "./Header";
 
 export function GamePage() {
-  const { game, createScore, addToScore, getRound, removeFromScore } =
-    useGame();
+  const {
+    game,
+    createScore,
+    addToScore,
+    removeFromScores: removeFromScore,
+    addRound,
+  } = useGame();
+  const navigate = useNavigate();
+  const [draggingPlayer, setDraggingPlayer] = useState<Player | null>(null);
   const { roundNumber: roundNumberParam } = useParams();
   const roundNumber = roundNumberParam ? parseInt(roundNumberParam, 10) : NaN;
-  const [draggingPlayer, setDraggingPlayer] = useState<Player | null>(null);
+  const round = game.rounds.find((it) => it.number === roundNumber) ?? null;
 
-  if (isNaN(roundNumber)) {
+  if (!round) {
     return <Navigate to="/" />;
   }
-  const round = getRound(roundNumber);
 
   return (
     <DndContext
@@ -45,31 +53,52 @@ export function GamePage() {
           "player" in dropTarget &&
           dropTarget.player.id !== draggingPlayer?.id
         ) {
-          createScore(roundNumber, [dropTarget.player, draggingPlayer]);
+          createScore(round.number, [dropTarget.player, draggingPlayer]);
         }
         if (dropTarget && "scoreId" in dropTarget) {
-          addToScore(roundNumber, dropTarget.scoreId, draggingPlayer!);
+          addToScore(round.number, dropTarget.scoreId, draggingPlayer!);
         }
         if (event.over?.id === "background") {
-          removeFromScore(roundNumber, draggingPlayer!);
+          removeFromScore(round.number, draggingPlayer!);
         }
         setDraggingPlayer(null);
       }}
     >
       <PageLayout>
-        <Header roundNumber={roundNumber} />
-        <RoundDisplay round={round} game={game} />
+        <Header />
+        <RoundDisplay round={round} />
         <DragOverlay>
           {draggingPlayer && <PlayerDisplay player={draggingPlayer} />}
         </DragOverlay>
+        <Button
+          onClick={() => {
+            addRound();
+            navigate(`/${roundNumber + 1}`);
+          }}
+          variant="contained"
+          fullWidth
+          sx={{ mt: 4 }}
+        >
+          Nächste Runde
+        </Button>
+        <Button
+          onClick={() => {
+            navigate(`/results`);
+          }}
+          variant="outlined"
+          fullWidth
+          sx={{ mt: 2 }}
+        >
+          Ergebnisse
+        </Button>
       </PageLayout>
     </DndContext>
   );
 }
 
-function RoundDisplay(props: { round: Round; game: Game }) {
-  const { round, game } = props;
-  const players = game.players;
+function RoundDisplay(props: { round: Round }) {
+  const { round } = props;
+  const { players } = usePlayers();
   const playersWithoutScores = players.filter((player) => {
     return !round.scores.some((score) => score.playerIds.includes(player.id));
   });
@@ -213,10 +242,14 @@ function ScoreDisplay(props: {
   previewPlayer?: Player | null;
 }) {
   const { players, previewPlayer } = props;
+  const count = players.length + (previewPlayer ? 1 : 0);
 
   return (
     <Card sx={{ backgroundColor: (t) => alpha(t.palette.primary.light, 0.2) }}>
-      <CardContent>
+      <CardContent sx={{ p: 1 }}>
+        <Typography variant="caption" sx={{ mb: 1 }}>
+          {count} Spieler
+        </Typography>
         <Stack gap={1}>
           {players.map((player) => (
             <DraggablePlayerDisplay player={player} key={player.id} />

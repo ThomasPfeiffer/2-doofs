@@ -1,9 +1,5 @@
 import React, { createContext, useCallback, useEffect, useState } from "react";
-
-export type Player = {
-  id: string;
-  name: string;
-};
+import { Player } from "./usePlayers";
 
 export type Round = {
   number: number;
@@ -17,21 +13,16 @@ export type Score = {
 
 export type Game = {
   id: string;
-  players: Player[];
   rounds: Round[];
 };
 
 export type GameContext = {
   game: Game;
-
-  addPlayer: () => void;
-  removePlayer: (id: string) => void;
-  updatePlayer: (id: string, name: string) => void;
-
-  getRound: (roundNumber: number) => Round;
+  resetGame: () => void;
+  addRound: () => void;
 
   addToScore: (roundNumber: number, scoreId: string, player: Player) => void;
-  removeFromScore: (roundNumber: number, player: Player) => void;
+  removeFromScores: (roundNumber: number, player: Player) => void;
   createScore: (roundNumber: number, players: Player[]) => void;
 };
 
@@ -47,60 +38,19 @@ export function GameContextProvider({
     defaultGame
   );
 
-  const addPlayer = useCallback(() => {
+  const resetGame = useCallback(() => {
     setGame((currentGame: Game) => {
-      const newPlayers = [
-        ...currentGame.players,
-        { id: crypto.randomUUID(), name: "" },
-      ];
-      const newGame: Game = { ...currentGame, players: newPlayers };
-      return newGame;
+      return { ...currentGame, rounds: [{ number: 1, scores: [] }] };
     });
   }, [setGame]);
 
-  const removePlayer = useCallback(
-    (id: string) => {
-      setGame((currentGame: Game) => {
-        const newPlayers = currentGame.players.filter(
-          (player) => player.id !== id
-        );
-        const newGame: Game = { ...currentGame, players: newPlayers };
-        return newGame;
-      });
-    },
-    [setGame]
-  );
-
-  const updatePlayer = useCallback(
-    (id: string, name: string) => {
-      setGame((currentGame: Game) => {
-        const newPlayers = currentGame.players.map((player) => {
-          if (player.id === id) {
-            return { ...player, name };
-          }
-          return player;
-        });
-        const newGame: Game = { ...currentGame, players: newPlayers };
-        return newGame;
-      });
-    },
-    [setGame]
-  );
-
-  const getRound = useCallback(
-    (roundNumber: number) => {
-      const round = game.rounds[roundNumber];
-      if (!round) {
-        const newRound = { number: roundNumber, scores: [] };
-        setGame((currentGame: Game) => {
-          return { ...currentGame, rounds: [...currentGame.rounds, newRound] };
-        });
-        return newRound;
-      }
-      return round;
-    },
-    [game.rounds, setGame]
-  );
+  const addRound = useCallback(() => {
+    setGame((currentGame: Game) => {
+      const roundNumber = game.rounds.length + 1;
+      const newRound = { number: roundNumber, scores: [] };
+      return { ...currentGame, rounds: [...currentGame.rounds, newRound] };
+    });
+  }, [game.rounds.length, setGame]);
 
   const addToScore = useCallback(
     (roundNumber: number, scoreId: string, player: Player) => {
@@ -108,13 +58,13 @@ export function GameContextProvider({
         const newRounds = currentGame.rounds.map((round) => {
           if (round.number === roundNumber) {
             const newScores = round.scores.map((score) => {
-              if (
-                score.id === scoreId &&
-                !score.playerIds.includes(player.id)
-              ) {
+              if (score.id === scoreId) {
+                const playerIds = score.playerIds.includes(player.id)
+                  ? [...score.playerIds]
+                  : [...score.playerIds, player.id];
                 return {
                   ...score,
-                  playerIds: [...score.playerIds, player.id],
+                  playerIds,
                 };
               }
               return {
@@ -141,7 +91,15 @@ export function GameContextProvider({
         };
         const newRounds = currentGame.rounds.map((round) => {
           if (round.number === roundNumber) {
-            return { ...round, scores: [...round.scores, newScore] };
+            const newScores = round.scores.map((score) => {
+              return {
+                ...score,
+                playerIds: score.playerIds.filter(
+                  (id) => !players.some((player) => player.id === id)
+                ),
+              };
+            });
+            return { ...round, scores: [...newScores, newScore] };
           }
           return round;
         });
@@ -178,13 +136,11 @@ export function GameContextProvider({
     <Context.Provider
       value={{
         game,
-        addPlayer,
-        removePlayer,
-        updatePlayer,
-        getRound,
+        resetGame,
+        addRound,
         addToScore,
         createScore,
-        removeFromScore,
+        removeFromScores: removeFromScore,
       }}
     >
       {children}
@@ -219,7 +175,6 @@ function useLocalState<T>(key: string, initial: () => T) {
 function defaultGame(): Game {
   return {
     id: crypto.randomUUID(),
-    players: [],
     rounds: [],
   };
 }
