@@ -99,7 +99,7 @@ export function GameContextProvider({
       }
       return round;
     },
-    [game.rounds]
+    [game.rounds, setGame]
   );
 
   const addToScore = useCallback(
@@ -108,22 +108,19 @@ export function GameContextProvider({
         const newRounds = currentGame.rounds.map((round) => {
           if (round.number === roundNumber) {
             const newScores = round.scores.map((score) => {
-              const hasPlayer = score.playerIds.includes(player.id);
-              if (score.id === scoreId) {
-                if (!hasPlayer)
-                  return {
-                    ...score,
-                    playerIds: [...score.playerIds, player.id],
-                  };
-              } else {
-                if (hasPlayer)
-                  return {
-                    ...score,
-                    playerIds: score.playerIds.filter((id) => id !== player.id),
-                  };
+              if (
+                score.id === scoreId &&
+                !score.playerIds.includes(player.id)
+              ) {
+                return {
+                  ...score,
+                  playerIds: [...score.playerIds, player.id],
+                };
               }
-
-              return score;
+              return {
+                ...score,
+                playerIds: score.playerIds.filter((id) => id !== player.id),
+              };
             });
             return { ...round, scores: newScores };
           }
@@ -132,7 +129,7 @@ export function GameContextProvider({
         return { ...currentGame, rounds: newRounds };
       });
     },
-    []
+    [setGame]
   );
 
   const createScore = useCallback(
@@ -154,25 +151,28 @@ export function GameContextProvider({
     [setGame]
   );
 
-  const removeFromScore = useCallback((roundNumber: number, player: Player) => {
-    setGame((currentGame: Game) => {
-      const newRounds = currentGame.rounds.map((round) => {
-        if (round.number === roundNumber) {
-          const newScores = round.scores
-            .map((score) => {
-              return {
-                ...score,
-                playerIds: score.playerIds.filter((id) => id !== player.id),
-              };
-            })
-            .filter((score) => score.playerIds.length > 1);
-          return { ...round, scores: newScores };
-        }
-        return round;
+  const removeFromScore = useCallback(
+    (roundNumber: number, player: Player) => {
+      setGame((currentGame: Game) => {
+        const newRounds = currentGame.rounds.map((round) => {
+          if (round.number === roundNumber) {
+            const newScores = round.scores
+              .map((score) => {
+                return {
+                  ...score,
+                  playerIds: score.playerIds.filter((id) => id !== player.id),
+                };
+              })
+              .filter((score) => score.playerIds.length > 1);
+            return { ...round, scores: newScores };
+          }
+          return round;
+        });
+        return { ...currentGame, rounds: newRounds };
       });
-      return { ...currentGame, rounds: newRounds };
-    });
-  }, []);
+    },
+    [setGame]
+  );
 
   return (
     <Context.Provider

@@ -20,7 +20,12 @@ export function Intro() {
         <Fade in={true} timeout={2000}>
           <Box
             component="img"
-            sx={{ width: "80vw", height: "auto", display: "block" }}
+            sx={{
+              width: "80vw",
+              height: "auto",
+              display: "block",
+              maxWidth: 800,
+            }}
             src={logo}
             alt="error"
           />
@@ -73,7 +78,7 @@ function PlayerInput(props: {
   showLabel: boolean;
   allowDelete: boolean;
 }) {
-  const { player, allowDelete, index } = props;
+  const { player, allowDelete } = props;
   const { updatePlayer, removePlayer } = useGame();
 
   return (

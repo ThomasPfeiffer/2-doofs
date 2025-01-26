@@ -5,9 +5,16 @@ import {
   useDroppable,
 } from "@dnd-kit/core";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
-import { Box, Card, CardContent, Stack, Typography } from "@mui/material";
+import {
+  alpha,
+  Box,
+  Card,
+  CardContent,
+  Stack,
+  Typography,
+} from "@mui/material";
 import React, { useState } from "react";
-import { Navigate, useNavigate, useParams } from "react-router";
+import { Navigate, useParams } from "react-router";
 import { PageLayout } from "../PageLayout";
 import { Game, Player, Round, Score, useGame } from "../useGame";
 import { Header } from "./Header";
@@ -15,17 +22,14 @@ import { Header } from "./Header";
 export function GamePage() {
   const { game, createScore, addToScore, getRound, removeFromScore } =
     useGame();
-  const navigate = useNavigate();
-
   const { roundNumber: roundNumberParam } = useParams();
   const roundNumber = roundNumberParam ? parseInt(roundNumberParam, 10) : NaN;
+  const [draggingPlayer, setDraggingPlayer] = useState<Player | null>(null);
 
   if (isNaN(roundNumber)) {
     return <Navigate to="/" />;
   }
   const round = getRound(roundNumber);
-
-  const [draggingPlayer, setDraggingPlayer] = useState<Player | null>(null);
 
   return (
     <DndContext
@@ -108,9 +112,12 @@ function RoundDisplay(props: { round: Round; game: Game }) {
       {playersWithoutScores.map((player) => (
         <DroppablePlayerDisplay player={player} key={player.id} />
       ))}
-      {isOver && active?.data.current && "player" in active?.data.current && (
-        <PlayerDisplay player={active?.data.current.player} dropPreview />
-      )}
+      {isOver &&
+        active?.data.current &&
+        "player" in active.data.current &&
+        !playersWithoutScores.some(
+          (p) => p.id == active.data.current!.player.id
+        ) && <PlayerDisplay player={active?.data.current.player} dropPreview />}
     </Stack>
   );
 }
@@ -121,9 +128,7 @@ function DroppablePlayerDisplay(props: { player: Player }) {
     id: player.id,
     data: { player },
   });
-  const draggingPlayer = (active?.data as any)?.current?.player as
-    | Player
-    | undefined;
+  const draggingPlayer = active?.data?.current?.player as Player | undefined;
   const showDropPreview =
     isOver && draggingPlayer && draggingPlayer?.id !== player.id;
 
@@ -164,7 +169,14 @@ function PlayerDisplay(props: {
   dropPreview?: boolean;
 }) {
   return (
-    <Card sx={{ p: 1, opacity: props.dropPreview ? 0.6 : 1 }}>
+    <Card
+      sx={{
+        p: 1,
+        opacity: props.dropPreview ? 0.6 : 1,
+      }}
+      elevation={0}
+      variant="outlined"
+    >
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <DragIndicatorIcon sx={{ color: "grey" }} />
         <Typography sx={{ textAlign: "center" }}>
@@ -182,7 +194,7 @@ function DroppableScoreDisplay(props: { players: Player[]; score: Score }) {
     data: { scoreId: score.id },
   });
   const overPlayer =
-    active?.data.current && "player" in active?.data.current
+    active?.data.current && "player" in active.data.current
       ? (active?.data.current.player as Player)
       : null;
   const previewPlayer =
@@ -203,7 +215,7 @@ function ScoreDisplay(props: {
   const { players, previewPlayer } = props;
 
   return (
-    <Card>
+    <Card sx={{ backgroundColor: (t) => alpha(t.palette.primary.light, 0.2) }}>
       <CardContent>
         <Stack gap={1}>
           {players.map((player) => (
