@@ -23,7 +23,7 @@ export function PlayerContextProvider({
 }) {
   const { state, setState } = useLocalState<{ players: Player[] }>(
     "playersV1",
-    () => ({ players: [createPlayer()] })
+    () => ({ players: [createPlayer(), createPlayer(), createPlayer()] })
   );
 
   const addPlayer = useCallback(() => {

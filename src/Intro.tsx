@@ -9,11 +9,13 @@ import {
   Typography,
 } from "@mui/material";
 import React from "react";
+import { ErrorBoundary } from "react-error-boundary";
 import FlipMove from "react-flip-move";
 import { useNavigate } from "react-router";
 import { useConfirmation } from "./ConfirmationDialog";
 import logo from "./logo.png";
 import { PageLayout } from "./PageLayout";
+import { ResetButton } from "./ResetButton";
 import { useGame } from "./useGame";
 import { Player, usePlayers } from "./usePlayers";
 
@@ -27,84 +29,78 @@ export function Intro() {
   return (
     <PageLayout>
       <Stack alignItems="center">
-        <Fade in={true} timeout={2000}>
-          <Box
-            component="img"
-            sx={{
-              width: "80vw",
-              height: "auto",
-              display: "block",
-              maxWidth: 800,
-            }}
-            src={logo}
-            alt="error"
-          />
-        </Fade>
-        <Fade in={true} timeout={4000}>
-          <Stack sx={{ width: 1 }}>
-            <FlipMove>
-              {players.map((player, index) => {
-                return (
-                  <Box sx={{ my: 4 }} key={player.id}>
-                    <PlayerInput
-                      player={player}
-                      showLabel={true}
-                      allowDelete={players.length !== 1}
-                      index={index}
-                    />
-                  </Box>
-                );
-              })}
-              <Stack gap={2}>
-                <Button
-                  startIcon={<Add />}
-                  onClick={addPlayer}
-                  variant="outlined"
-                  fullWidth
-                >
-                  Spieler hinzufügen
-                </Button>
-                {hasGame && (
+        <Box sx={{ alignSelf: "end" }}>
+          <ResetButton />
+        </Box>
+        <ErrorBoundary fallback={<Typography>Fehler</Typography>}>
+          <Fade in={true} timeout={2000}>
+            <Box
+              component="img"
+              sx={{
+                width: "80vw",
+                height: "auto",
+                display: "block",
+                maxWidth: 800,
+              }}
+              src={logo}
+              alt="error"
+            />
+          </Fade>
+          <Fade in={true} timeout={4000}>
+            <Stack sx={{ width: 1 }}>
+              <FlipMove>
+                {players.map((player, index) => {
+                  return (
+                    <Box sx={{ my: 4 }} key={player.id}>
+                      <PlayerInput
+                        player={player}
+                        showLabel={true}
+                        allowDelete={players.length !== 1}
+                        index={index}
+                      />
+                    </Box>
+                  );
+                })}
+                <Stack gap={2}>
                   <Button
+                    startIcon={<Add />}
+                    onClick={addPlayer}
                     variant="outlined"
                     fullWidth
-                    onClick={() => {
-                      navigate(`/${game.rounds.length}`);
-                    }}
-                    endIcon={<PlayArrow />}
                   >
-                    Fortsetzen
+                    Spieler hinzufügen
                   </Button>
-                )}
-                <Button
-                  endIcon={<PlayArrow />}
-                  disabled={
-                    players.some((it) => !it.name) || players.length <= 1
-                  }
-                  onClick={() => {
-                    if (hasGame) {
-                      confirm({
-                        title: "Sicher?",
-                        text: "Du hast noch ein laufendes Spiel, möchtest du wirklich ein neues starten?",
-                        onConfirm: () => {
-                          resetGame();
-                          navigate(`/1`);
-                        },
-                      });
-                    } else {
-                      addRound();
-                      navigate(`/1`);
+                  {hasGame && <ContinueButton game={game} />}
+                  <Button
+                    endIcon={<PlayArrow />}
+                    disabled={
+                      players.some((it) => !it.name) || players.length <= 1
                     }
-                  }}
-                  variant="contained"
-                  fullWidth
-                >
-                  Neues Spiel
-                </Button>
-              </Stack>
-            </FlipMove>
-          </Stack>
-        </Fade>
+                    onClick={() => {
+                      if (hasGame) {
+                        confirm({
+                          title: "Sicher?",
+                          text: "Du hast noch ein laufendes Spiel, möchtest du wirklich ein neues starten?",
+                          onConfirm: () => {
+                            resetGame();
+                            navigate(`/1`);
+                          },
+                        });
+                      } else {
+                        addRound();
+                        navigate(`/1`);
+                      }
+                    }}
+                    variant="contained"
+                    fullWidth
+                  >
+                    Neues Spiel
+                  </Button>
+                </Stack>
+              </FlipMove>
+            </Stack>
+          </Fade>
+        </ErrorBoundary>
       </Stack>
       <Typography sx={{ whiteSpace: "pre-wrap" }}>
         {JSON.stringify(game, undefined, 2)}
@@ -121,7 +117,6 @@ function PlayerInput(props: {
 }) {
   const { player, allowDelete } = props;
   const { updatePlayer, removePlayer } = usePlayers();
-
   return (
     <Box
       sx={{
