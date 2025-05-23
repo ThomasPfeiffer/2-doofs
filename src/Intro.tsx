@@ -119,7 +119,7 @@ function PlayerInput(props: {
         display: "grid",
         gridTemplateColumns: "1fr auto",
         alignItems: "center",
-        rowGap: 1,
+        gap: 1,
       }}
     >
       <TextField

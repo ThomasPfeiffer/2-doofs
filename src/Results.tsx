@@ -5,7 +5,14 @@ import {
   Divider,
   List,
   ListItem,
+  Paper,
   Rating,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   Typography,
 } from "@mui/material";
 import React, { Fragment, useMemo, useState } from "react";
@@ -162,29 +169,56 @@ function PlayerStars(props: { playerStats: PlayerStats[] }) {
 function Rounds(props: { game: Game; players: Player[] }) {
   const { game, players } = props;
   return (
-    <List sx={{ display: "flex", gap: 2, flexDirection: "column" }}>
-      {game.rounds.map((round) => {
-        return (
-          <ListItem
-            key={round.number}
-            sx={{ display: "flex", gap: 2, flexDirection: "column" }}
-          >
-            <Box>Runde {round.number}</Box>
-            <Box>
-              {round.scores.map((score) => {
-                const player = players.find((p) =>
-                  score.playerIds.includes(p.id)
-                );
-                return (
-                  <Box key={score.id}>
-                    {player?.name}: {score.playerIds.length} Punkte
-                  </Box>
-                );
-              })}
-            </Box>
-          </ListItem>
-        );
-      })}
-    </List>
+    <>
+      <TableContainer component={Paper} sx={{ maxHeight: "100%" }}>
+        <Table stickyHeader>
+          <TableHead>
+            <TableRow>
+              <TableCell sx={{ fontWeight: "bold" }}>Runde</TableCell>
+              {players.map((player) => (
+                <TableCell
+                  key={player.id}
+                  align="center"
+                  sx={{
+                    maxWidth: "100px",
+                    overflow: "hidden",
+                    whiteSpace: "nowrap",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {player.name}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {game.rounds.map((round) => (
+              <TableRow
+                key={round.number}
+                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+              >
+                <TableCell
+                  component="th"
+                  scope="row"
+                  align="center"
+                  sx={{
+                    fontWeight: "bold",
+                  }}
+                >
+                  {round.number}
+                </TableCell>
+                {players.map((player) => (
+                  <TableCell key={player.id} align="center">
+                    {round.scores.find((score) =>
+                      score.playerIds.includes(player.id)
+                    )?.playerIds.length ?? 0}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </>
   );
 }

@@ -209,7 +209,14 @@ function PlayerDisplay(props: {
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <DragIndicatorIcon sx={{ color: "grey" }} />
-        <Typography sx={{ textAlign: "center" }}>
+        <Typography
+          sx={{
+            textAlign: "center",
+            overflow: "hidden",
+            whiteSpace: "nowrap",
+            textOverflow: "ellipsis",
+          }}
+        >
           {props.player?.name ?? "???"}
         </Typography>
       </Box>
