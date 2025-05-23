@@ -1,8 +1,17 @@
-import { Box, Button, Chip, List, ListItem, Rating } from "@mui/material";
-import React, { useMemo, useState } from "react";
+import {
+  Box,
+  Button,
+  Chip,
+  Divider,
+  List,
+  ListItem,
+  Rating,
+  Typography,
+} from "@mui/material";
+import React, { Fragment, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { ContinueButton } from "./ContinueButton";
-import { PageLayout } from "./PageLayout";
+import { PageActions, PageLayout } from "./PageLayout";
 import { Game, useGame } from "./useGame";
 import { Player, usePlayers } from "./usePlayers";
 
@@ -31,12 +40,22 @@ export function Results() {
         stars: stars,
       };
     });
+    playerStats.sort((a, b) => b.stars - a.stars);
     return playerStats;
   }, [players, game.rounds]);
   const viewMode = useViewMode();
 
   return (
-    <PageLayout>
+    <PageLayout
+      actions={
+        <PageActions>
+          <ContinueButton game={game} />
+          <Button component={Link} to="/" variant="contained">
+            Hauptmenü
+          </Button>
+        </PageActions>
+      }
+    >
       <ViewModeSelect viewMode={viewMode} />
       {viewMode.viewMode === "stars" && (
         <PlayerStars playerStats={playerStats} />
@@ -44,13 +63,6 @@ export function Results() {
       {viewMode.viewMode === "rounds" && (
         <Rounds game={game} players={players} />
       )}
-
-      <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: "1fr 1fr" }}>
-        <ContinueButton game={game} />
-        <Button component={Link} to="/" variant="contained">
-          Hauptmenü
-        </Button>
-      </Box>
     </PageLayout>
   );
 }
@@ -74,7 +86,7 @@ type UseViewModeReturn = ReturnType<typeof useViewMode>;
 function ViewModeSelect(props: { viewMode: UseViewModeReturn }) {
   const { viewMode, setViewMode } = props.viewMode;
   return (
-    <Box sx={{ display: "flex", gap: 2 }}>
+    <Box sx={{ display: "flex", gap: 2, my: 1 }}>
       <Chip
         onClick={() => setViewMode("stars")}
         label="Platzierung"
@@ -93,21 +105,57 @@ function ViewModeSelect(props: { viewMode: UseViewModeReturn }) {
 
 function PlayerStars(props: { playerStats: PlayerStats[] }) {
   return (
-    <List sx={{ display: "flex", gap: 2, flexDirection: "column" }}>
-      {props.playerStats.map(({ player, stars }) => {
-        return (
-          <ListItem
-            key={player.id}
-            sx={{ display: "flex", gap: 2, flexDirection: "column" }}
+    <Box
+      sx={{
+        width: 1,
+        maxWidth: "100vw",
+        display: "grid",
+        gridTemplateColumns: "1fr auto auto",
+        rowGap: 2,
+        columnGap: 1,
+        my: 2,
+      }}
+    >
+      <Typography fontWeight="bold">Spieler</Typography>
+      <Typography fontWeight="bold">Sterne</Typography>
+      <Typography fontWeight="bold">Punkte</Typography>
+      {props.playerStats.map(({ player, stars, points }) => (
+        <Fragment key={player.id}>
+          <Box
+            sx={{ display: "flex", alignItems: "center", overflow: "hidden" }}
           >
-            <Box>{player.name}</Box>
-            <Box>
-              <Rating name="read-only" value={stars} precision={0.5} readOnly />
-            </Box>
-          </ListItem>
-        );
-      })}
-    </List>
+            <Typography
+              sx={{
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {player.name}
+            </Typography>
+          </Box>
+          <Box>
+            <Rating
+              name="read-only"
+              value={stars}
+              precision={0.5}
+              size="small"
+              readOnly
+            />
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              flexDirection: "column",
+            }}
+          >
+            {points}
+          </Box>
+          <Divider sx={{ gridColumn: "1 / -1" }} />
+        </Fragment>
+      ))}
+    </Box>
   );
 }
 

@@ -14,10 +14,11 @@ import FlipMove from "react-flip-move";
 import { useNavigate } from "react-router";
 import { useConfirmation } from "./ConfirmationDialog";
 import logo from "./logo.png";
-import { PageLayout } from "./PageLayout";
+import { PageActions, PageLayout } from "./PageLayout";
 import { ResetButton } from "./ResetButton";
 import { useGame } from "./useGame";
 import { Player, usePlayers } from "./usePlayers";
+import { ContinueButton } from "./ContinueButton";
 
 export function Intro() {
   const { players, addPlayer } = usePlayers();
@@ -27,9 +28,39 @@ export function Intro() {
   const navigate = useNavigate();
 
   return (
-    <PageLayout>
+    <PageLayout
+      noHeader
+      actions={
+        <PageActions orientation="vertical">
+          {hasGame && <ContinueButton game={game} />}
+          <Button
+            endIcon={<PlayArrow />}
+            disabled={players.some((it) => !it.name) || players.length <= 1}
+            onClick={() => {
+              if (hasGame) {
+                confirm({
+                  title: "Sicher?",
+                  text: "Du hast noch ein laufendes Spiel, möchtest du wirklich ein neues starten?",
+                  onConfirm: () => {
+                    resetGame();
+                    navigate(`/1`);
+                  },
+                });
+              } else {
+                addRound();
+                navigate(`/1`);
+              }
+            }}
+            variant="contained"
+            fullWidth
+          >
+            Neues Spiel
+          </Button>
+        </PageActions>
+      }
+    >
       <Stack alignItems="center">
-        <Box sx={{ alignSelf: "end" }}>
+        <Box sx={{ position: "absolute", top: 0, right: 0, p: 2 }}>
           <ResetButton />
         </Box>
         <ErrorBoundary fallback={<Typography>Fehler</Typography>}>
@@ -37,17 +68,18 @@ export function Intro() {
             <Box
               component="img"
               sx={{
-                width: "80vw",
+                width: "50%",
                 height: "auto",
                 display: "block",
                 maxWidth: 800,
+                p: 2,
               }}
               src={logo}
               alt="error"
             />
           </Fade>
           <Fade in={true} timeout={4000}>
-            <Stack sx={{ width: 1 }}>
+            <Stack sx={{ width: 1, maxWidth: "90%" }}>
               <FlipMove>
                 {players.map((player, index) => {
                   return (
@@ -61,50 +93,14 @@ export function Intro() {
                     </Box>
                   );
                 })}
-                <Stack gap={2}>
-                  <Button
-                    startIcon={<Add />}
-                    onClick={addPlayer}
-                    variant="outlined"
-                    fullWidth
-                  >
-                    Spieler hinzufügen
-                  </Button>
-                  {hasGame && <ContinueButton game={game} />}
-                  <Button
-                    endIcon={<PlayArrow />}
-                    disabled={
-                      players.some((it) => !it.name) || players.length <= 1
-                    }
-                    onClick={() => {
-                      if (hasGame) {
-                        confirm({
-                          title: "Sicher?",
-                          text: "Du hast noch ein laufendes Spiel, möchtest du wirklich ein neues starten?",
-                          onConfirm: () => {
-                            resetGame();
-                            navigate(`/1`);
-                          },
-                        });
-                      } else {
-                        addRound();
-                        navigate(`/1`);
-                      }
-                    }}
-                    variant="contained"
-                    fullWidth
-                  >
-                    Neues Spiel
-                  </Button>
-                </Stack>
+                <Button startIcon={<Add />} onClick={addPlayer} variant="text">
+                  Spieler hinzufügen
+                </Button>
               </FlipMove>
             </Stack>
           </Fade>
         </ErrorBoundary>
       </Stack>
-      <Typography sx={{ whiteSpace: "pre-wrap" }}>
-        {JSON.stringify(game, undefined, 2)}
-      </Typography>
     </PageLayout>
   );
 }

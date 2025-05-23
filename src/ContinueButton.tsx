@@ -11,7 +11,6 @@ export function ContinueButton(props: { game: Game }): React.ReactNode {
   return (
     <Button
       variant="outlined"
-      fullWidth
       onClick={() => {
         navigate(`/${game.rounds.length}`);
       }}

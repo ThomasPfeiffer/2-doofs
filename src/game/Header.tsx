@@ -34,7 +34,7 @@ export function Header() {
       <IconButton onClick={previous}>
         <NavigateBeforeIcon />
       </IconButton>
-      <Typography variant="h4" component="h1" sx={{ textAlign: "center" }}>
+      <Typography variant="h5" component="h1" sx={{ textAlign: "center" }}>
         Runde {roundNumber}
       </Typography>
       <IconButton onClick={forward} disabled={!hasNext}>

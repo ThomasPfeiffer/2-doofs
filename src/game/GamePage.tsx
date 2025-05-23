@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import React, { useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router";
-import { PageLayout } from "../PageLayout";
+import { PageActions, PageLayout } from "../PageLayout";
 import { Round, Score, useGame } from "../useGame";
 import { Player, usePlayers } from "../usePlayers";
 import { Header } from "./Header";
@@ -64,33 +64,34 @@ export function GamePage() {
         setDraggingPlayer(null);
       }}
     >
-      <PageLayout>
+      <PageLayout
+        actions={
+          <PageActions>
+            <Button
+              onClick={() => {
+                navigate(`/results`);
+              }}
+              variant="outlined"
+            >
+              Ergebnisse
+            </Button>
+            <Button
+              onClick={() => {
+                addRound();
+                navigate(`/${roundNumber + 1}`);
+              }}
+              variant="contained"
+            >
+              Nächste Runde
+            </Button>
+          </PageActions>
+        }
+      >
         <Header />
         <RoundDisplay round={round} />
         <DragOverlay>
           {draggingPlayer && <PlayerDisplay player={draggingPlayer} />}
         </DragOverlay>
-        <Button
-          onClick={() => {
-            addRound();
-            navigate(`/${roundNumber + 1}`);
-          }}
-          variant="contained"
-          fullWidth
-          sx={{ mt: 4 }}
-        >
-          Nächste Runde
-        </Button>
-        <Button
-          onClick={() => {
-            navigate(`/results`);
-          }}
-          variant="outlined"
-          fullWidth
-          sx={{ mt: 2 }}
-        >
-          Ergebnisse
-        </Button>
       </PageLayout>
     </DndContext>
   );
