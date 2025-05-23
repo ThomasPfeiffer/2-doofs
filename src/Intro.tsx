@@ -139,7 +139,7 @@ function PlayerInput(props: {
           }
         }}
         fullWidth
-        autoFocus
+        autoFocus={player.name === ""}
       />
       <Box sx={{ alignSelf: "end", width: "24px" }}>
         {allowDelete && (
