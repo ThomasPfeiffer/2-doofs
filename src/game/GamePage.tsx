@@ -187,7 +187,7 @@ function DraggablePlayerDisplay(props: { player: Player }) {
       ref={setNodeRef}
       {...listeners}
       {...attributes}
-      sx={{ cursor: "grab" }}
+      sx={{ cursor: "grab", touchAction: "none" }}
     >
       <PlayerDisplay player={props.player} />
     </Box>
