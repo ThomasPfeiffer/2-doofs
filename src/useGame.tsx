@@ -22,7 +22,7 @@ export type GameContext = {
   addRound: () => void;
 
   addToScore: (roundNumber: number, scoreId: string, player: Player) => void;
-  removeFromScores: (roundNumber: number, player: Player) => void;
+  removeFromScore: (roundNumber: number, player: Player) => void;
   createScore: (roundNumber: number, players: Player[]) => void;
 };
 
@@ -57,21 +57,23 @@ export function GameContextProvider({
       setGame((currentGame: Game) => {
         const newRounds = currentGame.rounds.map((round) => {
           if (round.number === roundNumber) {
-            const newScores = round.scores.map((score) => {
-              if (score.id === scoreId) {
-                const playerIds = score.playerIds.includes(player.id)
-                  ? [...score.playerIds]
-                  : [...score.playerIds, player.id];
+            const newScores = round.scores
+              .map((score) => {
+                if (score.id === scoreId) {
+                  const playerIds = score.playerIds.includes(player.id)
+                    ? [...score.playerIds]
+                    : [...score.playerIds, player.id];
+                  return {
+                    ...score,
+                    playerIds,
+                  };
+                }
                 return {
                   ...score,
-                  playerIds,
+                  playerIds: score.playerIds.filter((id) => id !== player.id),
                 };
-              }
-              return {
-                ...score,
-                playerIds: score.playerIds.filter((id) => id !== player.id),
-              };
-            });
+              })
+              .filter((score) => score.playerIds.length > 1);
             return { ...round, scores: newScores };
           }
           return round;
@@ -140,7 +142,7 @@ export function GameContextProvider({
         addRound,
         addToScore,
         createScore,
-        removeFromScores: removeFromScore,
+        removeFromScore: removeFromScore,
       }}
     >
       {children}

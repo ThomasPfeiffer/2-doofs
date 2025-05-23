@@ -20,13 +20,14 @@ import { PageActions, PageLayout } from "../PageLayout";
 import { Round, Score, useGame } from "../useGame";
 import { Player, usePlayers } from "../usePlayers";
 import { Header } from "./Header";
+import { Delete } from "@mui/icons-material";
 
 export function GamePage() {
   const {
     game,
     createScore,
     addToScore,
-    removeFromScores: removeFromScore,
+    removeFromScore: removeFromScore,
     addRound,
   } = useGame();
   const navigate = useNavigate();
@@ -58,7 +59,7 @@ export function GamePage() {
         if (dropTarget && "scoreId" in dropTarget) {
           addToScore(round.number, dropTarget.scoreId, draggingPlayer!);
         }
-        if (event.over?.id === "background") {
+        if (event.over?.id === "background" || event.over?.id === "remove") {
           removeFromScore(round.number, draggingPlayer!);
         }
         setDraggingPlayer(null);
@@ -234,22 +235,27 @@ function DroppableScoreDisplay(props: { players: Player[]; score: Score }) {
     active?.data.current && "player" in active.data.current
       ? (active?.data.current.player as Player)
       : null;
+  const draggingPlayerIsInScore =
+    overPlayer && score.playerIds.includes(overPlayer.id);
   const previewPlayer =
-    isOver && overPlayer && !score.playerIds.includes(overPlayer.id)
-      ? overPlayer
-      : null;
+    isOver && overPlayer && !draggingPlayerIsInScore ? overPlayer : null;
 
   return (
     <Box ref={setNodeRef}>
-      <ScoreDisplay players={players} previewPlayer={previewPlayer} />
+      <ScoreDisplay
+        players={players}
+        previewPlayer={previewPlayer}
+        draggingPlayerIsInScore={draggingPlayerIsInScore}
+      />
     </Box>
   );
 }
 function ScoreDisplay(props: {
   players: Player[];
   previewPlayer?: Player | null;
+  draggingPlayerIsInScore?: boolean;
 }) {
-  const { players, previewPlayer } = props;
+  const { players, previewPlayer, draggingPlayerIsInScore } = props;
   const count = players.length + (previewPlayer ? 1 : 0);
 
   return (
@@ -264,7 +270,33 @@ function ScoreDisplay(props: {
             <PlayerDisplay player={previewPlayer} dropPreview />
           )}
         </Stack>
+        {draggingPlayerIsInScore && <RemoveDropzone />}
       </CardContent>
     </Card>
+  );
+}
+
+function RemoveDropzone() {
+  const { setNodeRef, isOver } = useDroppable({
+    id: "remove",
+  });
+
+  return (
+    <Box
+      ref={setNodeRef}
+      sx={{
+        width: 1,
+        border: `2px dashed grey`,
+        borderRadius: 1,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: isOver ? "rgba(172, 172, 172, 0.6)" : undefined,
+        my: 1,
+        py: 1,
+      }}
+    >
+      <Delete sx={{ color: "grey" }} />
+    </Box>
   );
 }
