@@ -3,8 +3,6 @@ import {
   Button,
   Chip,
   Divider,
-  List,
-  ListItem,
   Paper,
   Rating,
   Table,

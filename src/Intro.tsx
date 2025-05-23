@@ -112,7 +112,7 @@ function PlayerInput(props: {
   allowDelete: boolean;
 }) {
   const { player, allowDelete } = props;
-  const { updatePlayer, removePlayer } = usePlayers();
+  const { updatePlayer, removePlayer, addPlayer } = usePlayers();
   return (
     <Box
       sx={{
@@ -133,7 +133,13 @@ function PlayerInput(props: {
           },
         }}
         onChange={(e) => updatePlayer(player.id, e.target.value)}
+        onKeyUp={(e) => {
+          if (e.key === "Enter") {
+            addPlayer();
+          }
+        }}
         fullWidth
+        autoFocus
       />
       <Box sx={{ alignSelf: "end", width: "24px" }}>
         {allowDelete && (

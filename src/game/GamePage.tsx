@@ -254,11 +254,9 @@ function ScoreDisplay(props: {
 
   return (
     <Card sx={{ backgroundColor: (t) => alpha(t.palette.primary.light, 0.2) }}>
-      <CardContent sx={{ p: 1 }}>
-        <Typography variant="caption" sx={{ mb: 1 }}>
-          {count} Spieler
-        </Typography>
-        <Stack gap={1}>
+      <CardContent sx={{ py: 1, px: 2 }}>
+        <Typography variant="caption">{count} Punkte</Typography>
+        <Stack gap={1} sx={{ pt: 1 }}>
           {players.map((player) => (
             <DraggablePlayerDisplay player={player} key={player.id} />
           ))}
