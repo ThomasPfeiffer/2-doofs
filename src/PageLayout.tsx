@@ -13,7 +13,7 @@ export function PageLayout(props: PageLayoutProps) {
   return (
     <Container
       sx={{
-        height: "100vh",
+        height: window.innerHeight,
         maxHeight: "900px",
         display: "grid",
         gridTemplateRows: "auto 1fr auto",
@@ -67,10 +67,11 @@ export function PageActions(
   return (
     <Box
       sx={{
+        py: 1,
         width: 1,
       }}
     >
-      <Divider sx={{ pt: 1 }} />
+      <Divider />
       <Box
         sx={
           props.orientation === "vertical"
