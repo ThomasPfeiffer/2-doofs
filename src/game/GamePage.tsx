@@ -253,7 +253,7 @@ function DroppableScoreDisplay(props: { players: Player[]; score: Score }) {
 function ScoreDisplay(props: {
   players: Player[];
   previewPlayer?: Player | null;
-  draggingPlayerIsInScore?: boolean;
+  draggingPlayerIsInScore?: boolean | null;
 }) {
   const { players, previewPlayer, draggingPlayerIsInScore } = props;
   const count = players.length + (previewPlayer ? 1 : 0);
