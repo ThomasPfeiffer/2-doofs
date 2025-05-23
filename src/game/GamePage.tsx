@@ -66,15 +66,7 @@ export function GamePage() {
     >
       <PageLayout
         actions={
-          <PageActions>
-            <Button
-              onClick={() => {
-                navigate(`/results`);
-              }}
-              variant="outlined"
-            >
-              Ergebnisse
-            </Button>
+          <PageActions orientation="vertical">
             <Button
               onClick={() => {
                 addRound();
@@ -83,6 +75,14 @@ export function GamePage() {
               variant="contained"
             >
               Nächste Runde
+            </Button>
+            <Button
+              onClick={() => {
+                navigate(`/results`);
+              }}
+              variant="outlined"
+            >
+              Ergebnisse
             </Button>
           </PageActions>
         }

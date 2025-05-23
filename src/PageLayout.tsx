@@ -1,4 +1,4 @@
-import { Box, Container } from "@mui/material";
+import { Box, Container, Divider } from "@mui/material";
 import React, { PropsWithChildren } from "react";
 import logo from "./logo.png";
 import { Link } from "react-router";
@@ -14,7 +14,7 @@ export function PageLayout(props: PageLayoutProps) {
     <Container
       sx={{
         height: "100vh",
-        maxHeight: "700px",
+        maxHeight: "900px",
         display: "grid",
         gridTemplateRows: "auto 1fr auto",
         "@media (min-height: 800px)": {
@@ -66,25 +66,32 @@ export function PageActions(
 ) {
   return (
     <Box
-      sx={
-        props.orientation === "vertical"
-          ? {
-              display: "flex",
-              flexDirection: "column",
-              gap: 1,
-              py: 1,
-              width: 1,
-            }
-          : {
-              display: "flex",
-              justifyContent: "space-evenly",
-              gap: 1,
-              py: 2,
-              width: 1,
-            }
-      }
+      sx={{
+        width: 1,
+      }}
     >
-      {props.children}
+      <Divider sx={{ pt: 1 }} />
+      <Box
+        sx={
+          props.orientation === "vertical"
+            ? {
+                display: "flex",
+                flexDirection: "column",
+                gap: 1,
+                py: 1,
+                width: 1,
+              }
+            : {
+                display: "flex",
+                justifyContent: "space-evenly",
+                gap: 1,
+                py: 2,
+                width: 1,
+              }
+        }
+      >
+        {props.children}
+      </Box>
     </Box>
   );
 }

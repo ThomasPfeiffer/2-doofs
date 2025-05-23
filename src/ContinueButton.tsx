@@ -4,13 +4,16 @@ import React from "react";
 import { useNavigate } from "react-router";
 import { Game } from "./useGame";
 
-export function ContinueButton(props: { game: Game }): React.ReactNode {
+export function ContinueButton(props: {
+  game: Game;
+  variant?: "contained" | "outlined";
+}): React.ReactNode {
   const navigate = useNavigate();
   const { game } = props;
 
   return (
     <Button
-      variant="outlined"
+      variant={props.variant ?? "outlined"}
       onClick={() => {
         navigate(`/${game.rounds.length}`);
       }}

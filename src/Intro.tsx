@@ -32,7 +32,7 @@ export function Intro() {
       noHeader
       actions={
         <PageActions orientation="vertical">
-          {hasGame && <ContinueButton game={game} />}
+          {hasGame && <ContinueButton game={game} variant="contained" />}
           <Button
             endIcon={<PlayArrow />}
             disabled={players.some((it) => !it.name) || players.length <= 1}
@@ -51,7 +51,7 @@ export function Intro() {
                 navigate(`/1`);
               }
             }}
-            variant="contained"
+            variant={hasGame ? "outlined" : "contained"}
             fullWidth
           >
             Neues Spiel

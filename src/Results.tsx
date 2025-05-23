@@ -53,11 +53,11 @@ export function Results() {
   return (
     <PageLayout
       actions={
-        <PageActions>
-          <ContinueButton game={game} />
+        <PageActions orientation="vertical">
           <Button component={Link} to="/" variant="contained">
             Hauptmenü
           </Button>
+          <ContinueButton game={game} />
         </PageActions>
       }
     >
